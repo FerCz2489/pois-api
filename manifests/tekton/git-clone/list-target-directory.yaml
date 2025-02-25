@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: list-target-directory-
+  namespace: diploe2-lfcz
+spec:
+  taskSpec:
+    steps:
+    - name: list-target-files
+      image: registry.access.redhat.com/ubi8/ubi
+      script: |
+        #!/bin/sh
+        echo "Listando archivos en /workspace/source/target en Tekton:"
+        ls -lah /workspace/source/target
+  workspaces:
+  - name: source
+    persistentVolumeClaim:
+      claimName: workspace
+

@@ -12,10 +12,11 @@ spec:
       fsGroup: 65532
   params:
   - name: url
-    value: "https://github.com/FerCz2489/pois-api.git"
+    value: "https://github.com/FerCz2489/pois-api"
   - name: deleteExisting
     value: "true"
   workspaces:
-    - name: output
-      persistentVolumeClaim:
-        claimName: workspace
+  - name: output
+    persistentVolumeClaim:
+      claimName: workspace
+

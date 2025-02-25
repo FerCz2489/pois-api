@@ -9,7 +9,7 @@ spec:
   serviceAccountName: tekton-sa
   params:
     - name: IMAGE
-      value: "docker.io/fercz/pois-api:v1.4"
+      value: "docker.io/fercz/pois-api:latest"
     - name: TLSVERIFY
       value: "false"
     - name: STORAGE_DRIVER
