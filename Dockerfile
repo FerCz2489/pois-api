@@ -16,4 +16,3 @@ EXPOSE 8080
 # Permite que la aplicación reciba variables de entorno en tiempo de ejecución
 ENTRYPOINT ["java", "-jar", "app.jar"]
 
-
