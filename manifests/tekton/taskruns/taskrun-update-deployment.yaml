@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: update-deployment-image-
+  namespace: diploe2-lfcz
+spec:
+  serviceAccountName: tekton-sa  # Usamos la cuenta de servicio `tekton-sa`
+  taskRef:
+    name: kubernetes-actions  # Referencia a la Task de Kubernetes
+  params:
+    - name: script
+      value: |
+        kubectl patch deployment pois-api-deployment --patch='{"spec":{"template":{"spec":{
+          "containers":[{ 
+            "name": "pois-api", 
+            "image": "docker.io/fercz/pois-api:latest" 
+          }]
+        }}}}'
+    - name: args
+      value:
+        - pois-api-deployment  # Nombre del Deployment
+        - docker.io/fercz/pois-api:latest  # La nueva imagen
+
