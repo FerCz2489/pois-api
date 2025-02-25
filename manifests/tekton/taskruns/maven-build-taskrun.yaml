@@ -15,7 +15,9 @@ spec:
         - clean
         - package
     - name: MAVEN_IMAGE
-      value: gcr.io/cloud-builders/mvn@sha256:8f38a2667125a8d83f6e1997847fedb6a06f041c90e2244884153d85d95f869b
+      value: gcr.io/cloud-builders/mvn
+    - name: CONTEXT_DIR
+      value: "."
   workspaces:
     - name: source
       persistentVolumeClaim:

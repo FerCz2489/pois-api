@@ -1,0 +1,33 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: kubernetes-actions-
+  namespace: diploe2-lfcz
+spec:
+  serviceAccountName: tekton-sa
+  taskRef:
+    name: kubernetes-actions
+  params:
+    - name: script
+      value: |
+        kubectl delete deployment pois-api-deployment --ignore-not-found=true
+        kubectl create deployment pois-api-deployment \
+          --image=docker.io/fercz/pois-api:latest \
+          --dry-run=true -o yaml | kubectl apply -f -
+
+        # Escalar el Deployment después de crearlo
+        kubectl scale deployment pois-api-deployment --replicas=1 -n diploe2-lfcz
+
+        # Asegurarse de que la variable de entorno MONGO_URI esté configurada
+        kubectl set env deployment/pois-api-deployment MONGO_URI=$(kubectl get secret mongo-secret -o jsonpath="{.data.MONGO_URI}" | base64 --decode)
+
+        echo "----------"
+        kubectl get deployment -n diploe2-lfcz
+        kubectl get pods -n diploe2-lfcz
+
+  workspaces:
+    - name: kubeconfig-dir
+      emptyDir: {}
+    - name: manifest-dir
+      emptyDir: {}
+
