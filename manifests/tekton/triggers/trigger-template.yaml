@@ -1,0 +1,52 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: tekton-trigger-template-cicd
+  namespace: diploe2-lfcz
+spec:
+  params:
+    - name: repo-url
+      description: The git repository URL to clone from.
+    - name: branch-name
+      description: The git branch to build.
+    - name: maven-image
+      description: The Maven image for compilation.
+    - name: image-name
+      description: The full path of the Docker image.
+    - name: deployment-name
+      description: The name of the deployment.
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: pipelinerun-cicd-
+      spec:
+        serviceAccountName: tekton-sa
+        pipelineRef:
+          name: pipeline-clone-package-deploy
+        params:
+          - name: repo-url
+            value: $(tt.params.repo-url)
+          - name: branch-name
+            value: $(tt.params.branch-name)
+          - name: maven-image
+            value: $(tt.params.maven-image)
+          - name: image-name
+            value: $(tt.params.image-name)
+          - name: deployment-name
+            value: $(tt.params.deployment-name)
+        workspaces:
+          - name: maven-settings
+            configmap:
+              name: maven-settings
+          - name: workspace
+            persistentVolumeClaim:
+              claimName: workspace
+          - name: kubeconfig-dir
+            emptyDir: {}
+          - name: manifest-dir
+            emptyDir: {}
+          - name: dockerconfig-secret
+            secret:
+              secretName: dockerconfig-secret
+
