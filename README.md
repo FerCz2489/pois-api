@@ -29,4 +29,4 @@ Esta es una **API REST** creada con **Spring Boot** para gestionar Puntos de Int
 4. Despliega en OpenShift
    ```bash
    Ocupa el manifiesto yaml que viene en los archivos para desplegarlo con comandos oc
-5. Prueba WEBHOOK pipeline
+5. Prueba WEBHOOK pipeline 2
