@@ -1,0 +1,18 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: tekton-trigger-binding-cicd
+  namespace: diploe2-lfcz
+spec:
+  params:
+    - name: repo-url
+      value: $(body.repository.clone_url)
+    - name: branch-name
+      value: main #$(body.repository.default_branch)
+    - name: maven-image
+      value: gcr.io/cloud-builders/mvn
+    - name: image-name
+      value: docker.io/fercz/pois-api:$(body.head_commit.id)
+    - name: deployment-name
+      value: pois-api-deployment
+

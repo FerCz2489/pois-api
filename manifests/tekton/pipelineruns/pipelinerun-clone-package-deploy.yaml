@@ -1,0 +1,28 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: pipelinerun-clone-package-deploy-
+  namespace: diploe2-lfcz
+spec:
+  serviceAccountName: tekton-sa
+  pipelineRef:
+    name: pipeline-clone-package-deploy
+  params:
+    - name: repo-url
+      value: "https://github.com/FerCz2489/pois-api"
+    - name: maven-image
+      value: "gcr.io/cloud-builders/mvn"
+    - name: image-url
+      value: "docker.io/fercz/pois-api:latest"
+  workspaces:
+    - name: workspace
+      persistentVolumeClaim:
+        claimName: workspace
+    - name: maven-settings
+      configmap:
+        name: maven-settings
+    - name: kubeconfig-dir
+      emptyDir: {}
+    - name: manifest-dir
+      emptyDir: {}
+

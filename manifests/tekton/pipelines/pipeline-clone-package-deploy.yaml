@@ -1,0 +1,122 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: pipeline-clone-package-deploy
+  namespace: diploe2-lfcz
+spec:
+  description: |
+    Esta Pipeline clona el repositorio, compila el código con Maven, 
+    construye la imagen Docker con Buildah y actualiza el Deployment en Kubernetes.
+  params:
+    - name: repo-url
+      type: string
+      default: "https://github.com/FerCz2489/pois-api"
+    - name: maven-image
+      type: string
+      default: "gcr.io/cloud-builders/mvn"
+    - name: image-url
+      type: string
+      default: "docker.io/fercz/pois-api:latest"
+  workspaces:
+    - name: workspace
+    - name: maven-settings
+    - name: kubeconfig-dir
+    - name: manifest-dir
+  tasks:
+    - name: fetch-repository
+      taskRef:
+        kind: Task
+        name: git-clone
+      params:
+        - name: url
+          value: $(params.repo-url)
+        - name: deleteExisting
+          value: "true"
+      workspaces:
+        - name: output
+          workspace: workspace
+
+    - name: build-with-maven
+      taskRef:
+        kind: Task
+        name: maven
+      runAfter:
+        - fetch-repository
+      params:
+        - name: GOALS
+          value:
+            - -B
+            - -DskipTests
+            - clean
+            - package
+        - name: MAVEN_IMAGE
+          value: $(params.maven-image)
+        - name: CONTEXT_DIR
+          value: "."
+      workspaces:
+        - name: source
+          workspace: workspace
+        - name: maven-settings
+          workspace: maven-settings
+
+    - name: buildah-build
+      taskRef:
+        kind: Task
+        name: buildah
+      runAfter:
+        - build-with-maven
+      params:
+        - name: IMAGE
+          value: $(params.image-url)
+        - name: TLSVERIFY
+          value: "false"
+        - name: STORAGE_DRIVER
+          value: "vfs"
+        - name: CONTEXT
+          value: "."
+      workspaces:
+        - name: source
+          workspace: workspace
+
+    - name: deploy-application
+      taskRef:
+        kind: Task
+        name: kubernetes-actions
+      runAfter:
+        - buildah-build
+      params:
+        - name: script
+          value: |
+            kubectl delete deployment pois-api-deployment --ignore-not-found=true
+            kubectl create deployment pois-api-deployment \
+              --image=$(params.image-url) \
+              --dry-run=true -o yaml | kubectl apply -f -
+            kubectl scale deployment pois-api-deployment --replicas=1 -n diploe2-lfcz
+            kubectl set env deployment/pois-api-deployment MONGO_URI=$(kubectl get secret mongo-secret -o jsonpath="{.data.MONGO_URI}" | base64 --decode)
+            echo "----------"
+            kubectl get deployment -n diploe2-lfcz
+            kubectl get pods -n diploe2-lfcz
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: kubeconfig-dir
+        - name: manifest-dir
+          workspace: manifest-dir
+
+    - name: update-deployment
+      taskRef:
+        kind: Task
+        name: kubernetes-actions
+      runAfter:
+        - deploy-application
+      params:
+        - name: script
+          value: |
+            kubectl patch deployment pois-api-deployment --patch='{"spec":{"template":{"spec":{
+              "containers":[{ 
+                "name": "pois-api", 
+                "image": "$(params.image-url)" 
+              }]
+            }}}}'
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: kubeconfig-dir
