@@ -30,3 +30,4 @@ Esta es una **API REST** creada con **Spring Boot** para gestionar Puntos de Int
    ```bash
    Ocupa el manifiesto yaml que viene en los archivos para desplegarlo con comandos oc
 5. Verificación de mi CI/CD desde mi repositorio diploe2-lfcz/pois-api
+
